@@ -1,6 +1,8 @@
 package models
 
 import (
+	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -10,8 +12,12 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() {
+	dbPass := os.Getenv("DB_PASS")
+	if dbPass == "" {
+		log.Fatal("DB_PASS environment variable is not set")
+	}
 	var err error
-	DB, err = gorm.Open(postgres.Open("postgresql://postgres:1234@localhost:5432/GO_CRUD"), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dbPass), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
