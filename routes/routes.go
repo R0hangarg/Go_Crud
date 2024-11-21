@@ -12,4 +12,7 @@ func RegisterRoutes(app *fiber.App) {
 	// User Routes
 	api.Get("/users", controllers.GetUsers)
 	api.Post("/users", controllers.CreateUser)
+	api.Delete("/users/:id", controllers.DeleteUser)
+	api.Put("/users/:id", controllers.UpdateUser)
+
 }
