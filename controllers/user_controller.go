@@ -2,9 +2,12 @@ package controllers
 
 import (
 	"Crud_fiber_Go/models"
+	"Crud_fiber_Go/utils"
 	"Crud_fiber_Go/views"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 func GetUsers(c *fiber.Ctx) error {
@@ -28,7 +31,12 @@ func CreateUser(c *fiber.Ctx) error {
 
 	// Save user to database
 	// DB logic here...
+	hashedPassword, err := utils.HashPassword(user.Password)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	user.Password = hashedPassword
 	if err := models.DB.Create(&user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Failed to create user",
@@ -92,4 +100,41 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	return c.Status(200).JSON(user)
+}
+
+func LoginUser(c *fiber.Ctx) error {
+	// Parse the request body into a Login model
+	user := new(models.Login)
+
+	if err := c.BodyParser(user); err != nil {
+		return views.JSON(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	// Validate input
+	if user.Email == "" || user.Password == "" {
+		return views.JSON(c, fiber.StatusBadRequest, "Email and Password are required")
+	}
+
+	// Check if the user exists in the database
+	var dbUser models.User
+	if err := models.DB.Where("email = ?", user.Email).First(&dbUser).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return views.JSON(c, fiber.StatusUnauthorized, "Invalid email")
+		}
+		return views.JSON(c, fiber.StatusInternalServerError, "Database error")
+	}
+
+	matchPassword := utils.CheckPasswordHash(user.Password, dbUser.Password)
+	// Compare the password (in a real-world app, you would hash and compare passwords)
+	if !matchPassword {
+		return views.JSON(c, fiber.StatusUnauthorized, "Invalid password")
+	}
+
+	token, _ := utils.GenerateJWT(user.Email)
+	// Respond with success (e.g., JWT token in a real-world app)
+	return views.JSON(c, fiber.StatusOK, fiber.Map{
+		"message": "Login successful",
+		"user":    dbUser,
+		"token":   token,
+	})
 }
