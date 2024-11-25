@@ -4,6 +4,7 @@ import (
 	"Crud_fiber_Go/models"
 	"Crud_fiber_Go/utils"
 	"Crud_fiber_Go/views"
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,6 +26,7 @@ func GetUsers(c *fiber.Ctx) error {
 
 func CreateUser(c *fiber.Ctx) error {
 	user := new(models.User)
+	fmt.Println(user)
 	if err := c.BodyParser(user); err != nil {
 		return views.JSON(c, fiber.StatusBadRequest, "Invalid request body")
 	}

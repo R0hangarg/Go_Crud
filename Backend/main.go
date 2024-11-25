@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -30,6 +31,11 @@ func main() {
 
 	// Initialize Fiber App
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173", // Allow your frontend origin
+		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
+		AllowHeaders: "Content-Type, Authorization",
+	}))
 	models.ConnectDatabase()
 	// Connect to database
 	if err := appConfig.ConnectDB(); err != nil {
